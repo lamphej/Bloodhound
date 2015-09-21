@@ -1,0 +1,24 @@
+Install python 2.6.3
+Create a virtual environment for it
+Download scapy source, install it with your virtual environment
+Install winpcap
+**pywin32 install will most likely require a visual studio install for the compiler**
+Download pywin32 source, install it with your virtual environment
+**EDIT WINDOWS REGISTRY TO REGISTER THE VIRTUAL ENVIRONMENT**
+    HKEY_LOCAL_MACHINE\SOFTWARE\Python\PythonCore\2.6
+    InstallPath and PythonPath
+Download and install special pypcap and libdnet binaries, install to the registered virtual environment
+Download and install pyreadline binary, install to virtual environment
+**Revert Windows Registry to register raw Python2.6 (OPTIONAL)**
+
+C:\Virt\Scapy\python.exe
+>> from scapy.all import *
+
+This might throw a bunch of errors, if it does, do the following:
+Find where scapy is installed to (site-packages)
+    C:\VirtualEnvs\Scapy\Lib\site-packages\scapy
+Edit scapy\layers\inet6.py line 3006 to
+    bind_layers(IPv6,      IP,       nh = 4 )
+
+At this point it might still throw a warning about IPv6, and a warning
+about ipsec IPPROTO_AH, it apparently doesn't matter though
