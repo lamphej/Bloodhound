@@ -4,6 +4,13 @@ from scapy.all import *
 import pprint
 import requests
 
+def insert_new_ip(src_ip):
+    packet_data[src_ip] = {}
+    packet_data[src_ip]["count"] = 0
+    packet_data[src_ip]["incoming"] = 0
+    packet_data[src_ip]["outgoing"] = 0
+
+
 def customAction(packet):
     global packetCount, my_macs, packet_data, monitor_config
     packetCount += 1
@@ -12,26 +19,17 @@ def customAction(packet):
         src_ip = packet[0][1].src
         dst_ip = packet[0][1].dst
         src_mac = packet[Ether].src
-        if not src_ip == monitor_config["ip"]:
+        if not src_ip == our_ip:
             inbound = True
             if not packet_data.has_key(src_ip):
-                packet_data[src_ip] = {}
-                packet_data[src_ip]["count"] = 0
-                packet_data[src_ip]["incoming"] = 0
-                packet_data[src_ip]["outgoing"] = 0
+                insert_new_ip(src_ip)
             packet_data[src_ip]["count"] += 1
             packet_data[src_ip]["incoming"] += 1
         else:
             if not packet_data.has_key(dst_ip):
-                packet_data[dst_ip] = {}
-                packet_data[dst_ip]["count"] = 0
-                packet_data[dst_ip]["incoming"] = 0
-                packet_data[dst_ip]["outgoing"] = 0
+                insert_new_ip(dst_ip)
             packet_data[dst_ip]["count"] += 1
             packet_data[dst_ip]["outgoing"] += 1
-        #dst_ = "Packet #%s: %s ==> %s" % (packetCount, src_ip, dst_ip)
-        dst_ = ""
-        #return dst_
     except:
         pass
 
@@ -41,8 +39,8 @@ def send_reports():
         report_url = monitor_config["report_url"]
         report_dict = {
             "src": {
-                "name": monitor_config["name"],
-                "ip": monitor_config["ip"]
+                "name": our_name,
+                "ip": our_ip
             },
             "data": [
 
@@ -60,6 +58,8 @@ def send_reports():
         time.sleep(5)
 
 if __name__ == "__main__":
+    our_name = socket.gethostname()
+    our_ip = socket.gethostbyname(socket.gethostname())
     monitor_config = json.loads(open("config.json", "r").read())
     packetCount = 0
     packet_data = {}

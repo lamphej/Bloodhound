@@ -1,54 +1,116 @@
 <!DOCTYPE html>
 <html>
 <head>
-<style>
-table, th, td {
-    border: 1px solid black;
-    border-collapse: collapse;
-}
-th, td {
-    padding: 5px;
-}
-</style>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" integrity="sha256-MfvZlkHCEqatNoGiOXveE8FIwMzZg4W85qfrfIFBfYc= sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha256-Sk3nkD6mLTMOF0EOpNtsIry+s1CsaqQC1rVLTAy+0yc= sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
+<!--Load the AJAX API. Do this only once per web page! -->
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+       // Load the Visualization API and the piechart package.
+      //"Line" charts are a part of the default package library.
+      google.load('visualization', '1', {'packages':['corechart']});
+
+    function drawChart(hostName)
+    {
+        $.get( "/json_report/" + hostName, function( data ) {
+            var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+            var tmp = Array();
+            for(i in data){
+                tmp.push([
+                            new Date(data[i][0] * 1000),
+                            data[i][1]
+                        ]
+                );
+            }
+            var newChartData = new google.visualization.DataTable(); //Creating a new data set for the chart to use.
+            newChartData.addColumn('datetime', 'Time');
+            newChartData.addColumn('number', 'Number of packets');
+            newChartData.addRows(tmp); //Place received data here.
+
+            var options = {
+                'title':'Total Packet Count Over Time For ' + hostName,
+                'legend':{'position': 'bottom'},
+                'pointSize': 5,
+                series: {
+                    0: {pointShape: 'circle'}
+                }
+            };
+            chart.draw(newChartData, options); //Lastly, re-draw the chart.
+        },
+        "json");
+    }
+    </script>
+
+    <style>
+        #hosttag {
+            cursor: pointer;
+            color: dodgerblue;
+            text-decoration: underline;
+            text-decoration-color: dodgerblue;
+        }
+
+
+    </style>
+
 </head>
 <body>
 
-<table style="width:100%">
-  <tr>
-    <th>Host Name</th>
-    <th>IP</th>
-    <th>Destination</th>
-    <th colspan="3">Packets</th>
-  </tr>
-  <tr>
-      <th></th>
-      <th></th>
-      <th></th>
-      <th>Incoming</th>
-      <th>Outgoing</th>
-      <th>Total</th>
-  </tr>
-  {% for src in network_data.keys() %}
-    <tr>
-        <td>{{ src }}</td>
-        <td>{{ network_data[src]["ip"] }}</td>
-        <td>{{ network_data[src]["data"].keys()[0] }}</td>
-        <td>{{ network_data[src]["data"][network_data[src]["data"].keys()[0]]["incoming"] }}</td>
-        <td>{{ network_data[src]["data"][network_data[src]["data"].keys()[0]]["outgoing"] }}</td>
-        <td>{{ network_data[src]["data"][network_data[src]["data"].keys()[0]]["total"] }}</td>
-    </tr>
-    {% for dest in network_data[src]["data"].keys()[1::] %}
+<div class="container">
+  <!--Div that will hold the pie chart-->
+    <div class="row-fluid">
+        <div class="span4">
+            <table class="table table-striped">
+                <tr>
+                    <td>Clients</td>
+                    <td>{{ client_count }}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="span8">
+            <div id="chart_div" style="width:400; height:300"></div>
+        </div>
+    </div>
+    <div class="row">
+    <table class="table table-striped">
+      <tr>
+        <th>Host Name</th>
+        <th>IP</th>
+        <th>Destination</th>
+        <th colspan="3">Packets</th>
+      </tr>
+      <tr>
+          <th></th> <!-- th = table header /th = closing of statement -->
+          <th></th>
+          <th></th>
+          <th>Incoming</th>
+          <th>Outgoing</th>
+          <th>Total</th>
+      </tr>
+      {% for src in network_data.keys() %}
         <tr>
+            <td id="hosttag" onclick="setInterval(function(){drawChart('{{ src }}')}, 5000)">{{ src }}</td>
+            <td>{{ network_data[src]["ip"] }}</td>
+            <td>{{ network_data[src]["data"].keys()[0] }}</td>
+            <td>{{ network_data[src]["data"][network_data[src]["data"].keys()[0]][-1]["incoming"] }}</td>
+            <td>{{ network_data[src]["data"][network_data[src]["data"].keys()[0]][-1]["outgoing"] }}</td>
+            <td>{{ network_data[src]["data"][network_data[src]["data"].keys()[0]][-1]["total"] }}</td>
+        </tr>
+          {% for dest in network_data[src]["data"].keys()[1::] %}
+           <tr>
             <td></td>
             <td></td>
             <td>{{ dest }}</td>
-            <td>{{ network_data[src]["data"][dest]["incoming"] }}</td>
-            <td>{{ network_data[src]["data"][dest]["outgoing"] }}</td>
-            <td>{{ network_data[src]["data"][dest]["total"] }}</td>
-        </tr>
-    {% endfor %}
-  {% endfor %}
-</table>
+            <td>{{ network_data[src]["data"][dest][-1]["incoming"] }}</td>
+            <td>{{ network_data[src]["data"][dest][-1]["outgoing"] }}</td>
+            <td>{{ network_data[src]["data"][dest][-1]["total"] }}</td>
+           </tr>
+          {% endfor %}
+      {% endfor %}
+    </table>
+        </div>
+
+</div>
 
 </body>
 </html>
