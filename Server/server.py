@@ -70,4 +70,4 @@ def submit_report():
 
 if __name__ == '__main__':
     network_data = {}
-    app.run(host="128.153.178.47")
+    app.run(host="128.153.171.217")

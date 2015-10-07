@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" integrity="sha256-MfvZlkHCEqatNoGiOXveE8FIwMzZg4W85qfrfIFBfYc= sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha256-Sk3nkD6mLTMOF0EOpNtsIry+s1CsaqQC1rVLTAy+0yc= sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
-<!--Load the AJAX API. Do this only once per web page! -->
-    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+
+    <script src="//code.jquery.com/jquery-1.10.1.js" type="text/javascript"></script>
+    <script type="text/javascript" src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script type="text/javascript">
+        var timer = 0;
        // Load the Visualization API and the piechart package.
       //"Line" charts are a part of the default package library.
       google.load('visualization', '1', {'packages':['corechart']});
@@ -88,24 +90,33 @@
           <th>Total</th>
       </tr>
       {% for src in network_data.keys() %}
-        <tr>
-            <td id="hosttag" onclick="setInterval(function(){drawChart('{{ src }}')}, 5000)">{{ src }}</td>
+        <tr data-toggle="collapse" data-target="#row{{ network_data.keys().index(src) }}" class="clickable">
+            <!-- <td id="hosttag" onclick="drawChart('{{ src }}');clearInterval(timer);setInterval(function(){drawChart('{{ src }}')}, 5000)">{{ src }}</td> -->
+            <td id="hosttag" onclick="drawChart('{{ src }}')">{{ src }}</td>
             <td>{{ network_data[src]["ip"] }}</td>
-            <td>{{ network_data[src]["data"].keys()[0] }}</td>
-            <td>{{ network_data[src]["data"][network_data[src]["data"].keys()[0]][-1]["incoming"] }}</td>
-            <td>{{ network_data[src]["data"][network_data[src]["data"].keys()[0]][-1]["outgoing"] }}</td>
-            <td>{{ network_data[src]["data"][network_data[src]["data"].keys()[0]][-1]["total"] }}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
         </tr>
-          {% for dest in network_data[src]["data"].keys()[1::] %}
-           <tr>
-            <td></td>
-            <td></td>
-            <td>{{ dest }}</td>
-            <td>{{ network_data[src]["data"][dest][-1]["incoming"] }}</td>
-            <td>{{ network_data[src]["data"][dest][-1]["outgoing"] }}</td>
-            <td>{{ network_data[src]["data"][dest][-1]["total"] }}</td>
-           </tr>
-          {% endfor %}
+        <tr>
+          <td colspan="6">
+               <div id="row{{ network_data.keys().index(src) }}" class="collapse">
+                    <table class="table table-striped">
+                        {% for dest in network_data[src]["data"].keys() %}
+                           <tr>
+                            <td></td>
+                            <td></td>
+                            <td>{{ dest }}</td>
+                            <td>{{ network_data[src]["data"][dest][-1]["incoming"] }}</td>
+                            <td>{{ network_data[src]["data"][dest][-1]["outgoing"] }}</td>
+                            <td>{{ network_data[src]["data"][dest][-1]["total"] }}</td>
+                           </tr>
+                          {% endfor %}
+                    </table>
+               </div>
+          </td>
+            </tr>
       {% endfor %}
     </table>
         </div>
