@@ -18,7 +18,7 @@
     {
         selectedHost = hostName;
         clearInterval(timer);
-        time = setInterval(function(){
+        timer = setInterval(function(){
             $.get( "/json_report/" + hostName, function( data ) {
             var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
             var tmp = Array();

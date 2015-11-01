@@ -119,7 +119,7 @@ def submit_report():
     src_name = js["src"]["name"]
     src_key = RK_SOURCE_HOST % src_name
     r_tmp = _redis_connection.hgetall(src_key)
-    if r_tmp is None:
+    if len(r_tmp.keys()) == 0:
         _redis_connection.hmset(src_key, {'ip': src_ip})
     time_key = RK_TIME_KEY % datetime.now()
     src_time_key = ';'.join([src_key, time_key])
