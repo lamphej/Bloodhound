@@ -9,13 +9,17 @@
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script type="text/javascript">
         var timer = 0;
+        var selectedHost = '';
        // Load the Visualization API and the piechart package.
       //"Line" charts are a part of the default package library.
       google.load('visualization', '1', {'packages':['corechart']});
 
     function drawChart(hostName)
     {
-        $.get( "/json_report/" + hostName, function( data ) {
+        selectedHost = hostName;
+        clearInterval(timer);
+        time = setInterval(function(){
+            $.get( "/json_report/" + hostName, function( data ) {
             var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
             var tmp = Array();
             for(i in data){
@@ -41,6 +45,7 @@
             chart.draw(newChartData, options); //Lastly, re-draw the chart.
         },
         "json");
+        }, 5000);
     }
     </script>
 
@@ -133,6 +138,12 @@
     $("#ttl_btn").click(
         function(){
             $.post("/set_ttl", JSON.stringify({ttl: $("#number").val()}));
+        }
+    );
+
+    $("#download_btn").click(
+        function(){
+            window.location.href = "/csv_report/" + selectedHost;
         }
     );
 </script>

@@ -4,6 +4,9 @@ from scapy.all import *
 import pprint
 import requests
 
+INTERVAL = 5
+
+
 def insert_new_ip(src_ip):
     packet_data[src_ip] = {}
     packet_data[src_ip]["count"] = 0
@@ -12,7 +15,7 @@ def insert_new_ip(src_ip):
 
 
 def customAction(packet):
-    global packetCount, my_macs, packet_data, monitor_config
+    global packetCount, packet_data, monitor_config
     packetCount += 1
     try:
         inbound = False
@@ -34,7 +37,7 @@ def customAction(packet):
         pass
 
 def send_reports():
-    global packet_data, monitor_config
+    global packet_data, monitor_config, INTERVAL
     while True:
         report_url = monitor_config["report_url"]
         report_dict = {
@@ -55,16 +58,16 @@ def send_reports():
                 }
             })
         requests.post(report_url, data=json.dumps(report_dict))
-        time.sleep(5)
+        time.sleep(INTERVAL)
 
 if __name__ == "__main__":
     our_name = socket.gethostname()
     our_ip = socket.gethostbyname(socket.gethostname())
     monitor_config = json.loads(open("config.json", "r").read())
+    INTERVAL = monitor_config['interval']
     packetCount = 0
     packet_data = {}
     t = threading.Thread(target=send_reports)
     t.start()
-    my_macs = [get_if_hwaddr(i) for i in get_if_list()]
     sniff(prn=customAction)
     pprint.pprint(packet_data)
