@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 from flask import Flask, render_template, request, Response
 
@@ -39,10 +39,19 @@ def index():
                 "outgoing": _redis_connection.hget(dest_redis_key, 'outgoing'),
                 "total": _redis_connection.hget(dest_redis_key, 'total')
             })
+    s = DATA_TTL
+    hours = s // 3600
+    # remaining seconds
+    s = s - (hours * 3600)
+    # minutes
+    minutes = s // 60
+    # remaining seconds
+    seconds = s - (minutes * 60)
+    ttl = "%s:%s:%s" % (hours, minutes, seconds)
     return render_template("index.html",
                            network_data=network_data,
                            client_count = len(network_data.keys()),
-                           ttl=DATA_TTL
+                           ttl=ttl
                            )
 
 @app.route('/csv_report/<host_name>')
@@ -108,7 +117,8 @@ def json_report(host_name=None):
 def set_ttl():
     global DATA_TTL
     js = ujson.loads(request.form.keys()[0])
-    DATA_TTL = js['ttl']
+    ttl = [int(x) for x in js['ttl'].split(':')]
+    DATA_TTL = ttl[0] * 3600 + ttl[1] * 60 + ttl[2]
     print "[+] Data TTL Set To %s" % DATA_TTL
 
 @app.route('/report/submit', methods=["POST"])
